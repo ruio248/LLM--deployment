@@ -9,9 +9,10 @@ CHATGLM_PATH = os.getenv("CHATGLM_PATH")
 class CHATGLM:
     
     def __init__(self, model_path: str = CHATGLM_PATH, tokenizer_path: str = CHATGLM_PATH):
-        self.model = AutoModel.from_pretrained(model_path, trust_remote_code=True).half().cuda()
+        self.model = AutoModel.from_pretrained(model_path, trust_remote_code=True).quantize(8).half().cuda() #此处8bite量化用来做测试
         self.model.eval()
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path,trust_remote_code=True)
+        print("CHATGLM模型加载成功")
     def get_response(self, message: str, history: List[Tuple[str, str]] = [],max_length=400,top_p=0.9,temperature=1) -> str:
         response, history = self.model.chat(self.tokenizer, message, history=history, max_length=max_length, top_p=top_p, temperature=temperature) 
         return response,history

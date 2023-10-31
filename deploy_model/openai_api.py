@@ -11,6 +11,7 @@ class OpenAIAPI:
     def __init__(self):
         self.api_key = OPENAI_APIKEY
         self.url = OPENAI_URL
+        print("GPT3.5模型加载成功")
 
     def get_response(self, prompt, history=None, max_tokens=None, top_p=None, temperature=None):
         headers = {
