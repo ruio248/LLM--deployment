@@ -4,7 +4,7 @@ from typing import List, Tuple
 from dotenv import load_dotenv
 import os
 
-load_dotenv("deploy_model/.env")
+load_dotenv(".env")
 LLAMA2_PATH = os.getenv("LLAMA2_PATH")
 print(LLAMA2_PATH)
 class LLAMA2:

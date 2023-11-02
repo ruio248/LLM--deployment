@@ -3,7 +3,7 @@ import json
 from dotenv import load_dotenv
 import os
 
-load_dotenv("deploy_model/.env")
+load_dotenv(".env")
 OPENAI_APIKEY = os.getenv("OPENAI_APIKEY")
 OPENAI_URL = os.getenv("OPENAI_URL")
 

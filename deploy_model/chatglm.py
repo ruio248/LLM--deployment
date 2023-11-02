@@ -3,7 +3,7 @@ from typing import List, Tuple
 from dotenv import load_dotenv
 import os
 
-load_dotenv("deploy_model/.env")
+load_dotenv(".env")
 CHATGLM_PATH = os.getenv("CHATGLM_PATH")
 
 class CHATGLM:

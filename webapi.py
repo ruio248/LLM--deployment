@@ -1,13 +1,9 @@
 from fastapi import FastAPI, Request, HTTPException, Depends
-import uvicorn
 from fastapi import Header
 import redis
-from deploy_model import models
-from celery_tasks.chatglm_infer import CHATGLM_infer
-from celery_tasks.llama2_infer import LLAMA2_infer
-from celery_tasks.gpt3_5_infer import GPT3_5_infer
-import build_celery
-
+from celery_worker import get_gpt_3_5_response,get_llama2_response,get_chatglm_response
+from celery_worker import cel
+from celery.result import AsyncResult
 #从redis服务器加载api_key 
 def get_api_keys_from_redis():
     return [key.decode('utf-8') for key in redis_client.smembers("api_keys")]
@@ -34,19 +30,19 @@ async def create_item(request: Request, api_key: str = Depends(verify_api_key)):
     temperature = json_post.get('temperature')
     model_type = json_post.get('model_type')
     if model_type == 'GPT3.5':
-        task = GPT3_5_infer.delay(prompt,history,max_length,top_p,temperature)  # 使用.delay()来异步调用
+        task = get_gpt_3_5_response.delay(prompt,history,max_length,top_p,temperature)  # 使用.delay()来异步调用
     elif model_type == 'LLAMA2':
-        task = LLAMA2_infer.delay(prompt,history,max_length,top_p,temperature) 
+        task = get_llama2_response.delay(prompt,history,max_length,top_p,temperature) 
     elif model_type == 'CHATGLM':
-        task = CHATGLM_infer.delay(prompt,history,max_length,top_p,temperature) 
+        task = get_chatglm_response.delay(prompt,history,max_length,top_p,temperature) 
     else:
-        task = GPT3_5_infer.delay(prompt,history,max_length,top_p,temperature) 
+        task = get_gpt_3_5_response.delay(prompt,history,max_length,top_p,temperature) 
 
     return {"status": "Task started", "task_id": task.id}
 
 @app.get("/get_result/{task_id}")
 async def get_result(task_id: str):
-    task = build_celery.cel.AsyncResult(task_id)  # 应该怎么导
+    task = cel.AsyncResult(task_id)  # 应该怎么导
     if task.state == 'PENDING':
         response = {"status": "pending"}
     elif task.state != 'FAILURE':
@@ -55,6 +51,3 @@ async def get_result(task_id: str):
         response = {"status": "failed", "result": str(task.result)}
     return response
 
-if __name__ == '__main__':
-    uvicorn.run(app, port=8000, workers=1,
-                 host="0.0.0.0")
